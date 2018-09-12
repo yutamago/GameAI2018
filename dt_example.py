@@ -1,5 +1,6 @@
 import math
 
+
 def possibilityOfValueInData(value, data):
     countAll = len(data)
     data_for_this_value = list(filter(lambda _label: _label == value, data))
@@ -44,17 +45,16 @@ def importance(data, dataColumn, goalColumn, goalValue):
         pLabel[label] = possibilityOfValueInData(label, columnData)
 
     entropy_sum = binary_entropy(pGoal)
-    #print("B(pGoal) = " + str(entropy_sum))
-    #print("pGoal = " + str(pGoal))
+    # print("B(pGoal) = " + str(entropy_sum))
+    # print("pGoal = " + str(pGoal))
 
     for label in columnData_set:
         filteredGoalData = filterImportance(columnData, label, goalData)
-        #print("Filtered Goal Data: " + str(filteredGoalData))
+        # print("Filtered Goal Data: " + str(filteredGoalData))
 
         p = possibilityOfValueInData(goalValue, filteredGoalData)
         entropy_sum -= pLabel[label] * binary_entropy(p)
-        #print("- " + str(pLabel[label]) + " * " + str(binary_entropy(p)) + " = " + str(entropy_sum))
-
+        # print("- " + str(pLabel[label]) + " * " + str(binary_entropy(p)) + " = " + str(entropy_sum))
 
     return entropy_sum
 
@@ -75,8 +75,7 @@ for column in columns:
     print("")
 
 
-
-def plurality_val(data, goalColumn, goalValue):
+def plurality_val(data, goalColumn=None, goalValue=None):
     if data == None:
         return None
 
@@ -92,6 +91,7 @@ def plurality_val(data, goalColumn, goalValue):
 
     return ig_column
 
+
 def allHaveSameClassification(examples, attributes):
     goalColumn = examples[attributes[-1]]
     classification = goalColumn[0]
@@ -104,10 +104,7 @@ def allHaveSameClassification(examples, attributes):
 
 def filterExamples(examples, column, attribute):
     newExamples = {}
-    rowsToRemove = []
-    for i in range(len(examples[column])):
-        if examples[column][i] != attribute:
-            rowsToRemove.append(i)
+    rowsToRemove = [i for i in range(len(examples[column])) if examples[column][i] != attribute]
 
     for i in range(len(examples[column])):
         for _column in examples.keys():
@@ -125,19 +122,22 @@ def dt_learning(examples, attributes, parent_examples=None):
         return plurality_val(parent_examples)
     elif classification != False:
         return classification
-    elif len(attributes) == 0:
-        return plurality_val(examples)
+    elif len(attributes) == 1:
+        return plurality_val(examples, attributes[0])
     else:
         goalColumn = attributes[-1]
         goalValue = examples[goalColumn][0]
-        columnHighestIG = plurality_val(examples, goalColumn, goalValue)
+        A = plurality_val(examples, goalColumn, goalValue)
+        A_str = A + "?"
 
-        A = columnHighestIG
-        tree = {}
-        for attribute in set(examples[columnHighestIG]):
-            subtree = {A: dt_learning(filterExamples(examples, A, attribute), attributes, examples)}
-            tree[attribute] = subtree
+        tree = {
+            A_str: {}
+        }
+        for attribute in set(examples[A]):
+            subtree = dt_learning(filterExamples(examples, A, attribute), [x for x in attributes if x != A], examples)
+            tree[A_str][attribute] = subtree
         return tree
+
 
 attributes = columns
 attributes.append("attack")
