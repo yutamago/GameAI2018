@@ -1,3 +1,4 @@
+import json
 import math
 
 
@@ -40,39 +41,17 @@ def importance(data, dataColumn, goalColumn, goalValue):
     columnData = data[dataColumn]
     columnData_set = set(columnData)
 
-    pLabel = {}
-    for label in columnData_set:
-        pLabel[label] = possibilityOfValueInData(label, columnData)
+    pLabel = {label: possibilityOfValueInData(label, columnData) for label in columnData_set}
 
     entropy_sum = binary_entropy(pGoal)
-    # print("B(pGoal) = " + str(entropy_sum))
-    # print("pGoal = " + str(pGoal))
 
     for label in columnData_set:
         filteredGoalData = filterImportance(columnData, label, goalData)
-        # print("Filtered Goal Data: " + str(filteredGoalData))
 
         p = possibilityOfValueInData(goalValue, filteredGoalData)
         entropy_sum -= pLabel[label] * binary_entropy(p)
-        # print("- " + str(pLabel[label]) + " * " + str(binary_entropy(p)) + " = " + str(entropy_sum))
 
     return entropy_sum
-
-
-data = {
-    'sky': ['sunny', 'sunny', 'rainy', 'sunny', 'sunny'],
-    'air': ['warm', 'warm', 'cold', 'warm', 'warm'],
-    'humid': ['normal', 'high', 'high', 'high', 'normal'],
-    'wind': ['strong', 'strong', 'strong', 'strong', 'weak'],
-    'water': ['warm', 'warm', 'warm', 'cool', 'warm'],
-    'forecast': ['same', 'same', 'change', 'change', 'same'],
-    'attack': ['+', '+', '-', '+', '-']
-}
-
-columns = ["sky", "humid", "wind", "water", "forecast"]
-for column in columns:
-    print(column + ": " + str(importance(data, column, "attack", "+")))
-    print("")
 
 
 def plurality_val(data, goalColumn=None, goalValue=None):
@@ -94,6 +73,10 @@ def plurality_val(data, goalColumn=None, goalValue=None):
 
 def allHaveSameClassification(examples, attributes):
     goalColumn = examples[attributes[-1]]
+
+    if len(goalColumn) == 0:
+        return True
+
     classification = goalColumn[0]
 
     for result in goalColumn:
@@ -138,8 +121,5 @@ def dt_learning(examples, attributes, parent_examples=None):
             tree[A_str][attribute] = subtree
         return tree
 
-
-attributes = columns
-attributes.append("attack")
-
-print("Baum: " + str(dt_learning(data, attributes)))
+def prettyprint_tree(tree):
+    print(json.dumps(tree, sort_keys=True, indent=4))
